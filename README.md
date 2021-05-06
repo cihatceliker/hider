@@ -9,6 +9,12 @@
 Hider is a package that is capable of hiding text or images in an image using bit manipulation techniques and random number generators to make unbreakable encryptions.
 
 ***
+## Installation
+```
+pip install hider
+```
+
+***
 ## Method
 There are a couple of different encoding options. All options require a key that is the same for both parties:
 
@@ -53,7 +59,7 @@ There are a couple of different encoding options. All options require a key that
 For the experiments, 4 important images will be hidden in a cover image.
 ```python
 from PIL import Image
-from src.hider.core import image_in_image
+from hider.core import image_in_image
 
 image_fn = ["figs/cover_image.jpg", 
             "figs/hidden1.jpg", "figs/hidden2.png", 
@@ -114,7 +120,7 @@ The value of the ratio should be as high as possible for as much invisibility as
 An example code to hide text in an image.
 ```python
 from PIL import Image
-from src.hider.core import text_in_image
+from hider.core import text_in_image
 
 image = Image.open("figs/cover_image.jpg")
 
@@ -129,6 +135,7 @@ hidden_text = text_in_image(image_with_text_in_it, key=1)
 
 Since hiding text in an image requires only changing a bit, the resulting image is impossible to differentiate from the original one, therefore we'll not show it here.
 
+***
 ### Note:
 * To be able to transfer an image with data hidden in it without a loss of information, use `png` file format, most of the other formats(`jpg`, `jpeg`, etc.) are lossy.
 * The images can easily be saved using `image.save("[filename].png")`.
