@@ -1,21 +1,27 @@
 import numpy as np
-from .hp import IMAGE_SIZE
+from .hp import IMAGE_SIZE, BYTE
 from PIL import Image
 from typing import List
 
 
-def image_router(*images, key: int=None):
+def image_router(*images, ratio: int, key: int=None):
     """Just a simple encapsulation, logic is described in the core file."""
+    if ratio <= 0 or ratio >= BYTE:
+        raise Exception("Error: Excepted values for ratio are in the range [1,8)")
     if key:
         if len(images) == 1:
-            return _decode_image_with_key(images[0], key)
-        return _encode_images_with_key(images, key)
+            return _decode_image_with_key(images[0], key=key, ratio=ratio)
+        return _encode_images_with_key(images, key=key, ratio=ratio)
+    # temp
+    raise Exception("Error: No key methods are not useful and will be removed.")
     if len(images) == 1:
         return _decode_image_no_key(images[0])
     return _encode_images_no_key(images)
     
 
-def _encode_images_with_key(org_images: List[np.ndarray], key: int) -> Image.Image:
+def _encode_images_with_key(org_images: List[np.ndarray], 
+                            key: int, 
+                            ratio: int) -> Image.Image:
     """Takes a list of images and combines them. Every image 
     except the first one is hid into the first image.
 
@@ -30,6 +36,8 @@ def _encode_images_with_key(org_images: List[np.ndarray], key: int) -> Image.Ima
         rest is hidden.
     key : int
         The key is needed for decoding the image later.
+    ratio : int
+        Tells how many bits are from the cover image.
 
     Returns
     -------
@@ -51,11 +59,14 @@ def _encode_images_with_key(org_images: List[np.ndarray], key: int) -> Image.Ima
         final_idxs.append(idxs)
     # making the magic happen using bit shifting operators
     for i in range(len(images)-1):
-        data[final_idxs[i]] = (data[final_idxs[i]] >> 4 << 4) + (images[i+1] >> 4)
+        data[final_idxs[i]] = (data[final_idxs[i]] >> (BYTE-ratio) << (BYTE-ratio)) + \
+                              (images[i+1] >> ratio)
     return Image.fromarray(data.reshape(org_images[0].shape))
 
 
-def _decode_image_with_key(image: np.ndarray, key: int) -> List[Image.Image]:
+def _decode_image_with_key(image: np.ndarray, 
+                           key: int, 
+                           ratio: int) -> List[Image.Image]:
     """Takes an image with hidden images in it and returns 
     a list of hidden images.
     
@@ -66,6 +77,8 @@ def _decode_image_with_key(image: np.ndarray, key: int) -> List[Image.Image]:
         rest is hidden.
     key : int
         The key used when encoding the data.
+    ratio : int
+        Tells how many bits are from the cover image.
 
     Returns
     -------
@@ -88,7 +101,7 @@ def _decode_image_with_key(image: np.ndarray, key: int) -> List[Image.Image]:
     # getting hidden images from the right indexes using bitshifting
     images = []
     for i in range(num_hidden):
-        images.append(Image.fromarray((data[final_idxs[i]] << 4).reshape((*IMAGE_SIZE, 3))))
+        images.append(Image.fromarray((data[final_idxs[i]] << ratio).reshape((*IMAGE_SIZE, 3))))
     return images
 
 
@@ -124,7 +137,7 @@ def _encode_images_no_key(images: List[np.ndarray]) -> np.ndarray:
 
 
 def _decode_image_no_key(combined_image: np.ndarray,
-                       num_hidden: int) -> List[Image.Image]:
+                         num_hidden: int) -> List[Image.Image]:
     """Extracts and returns the `num_hidden` images from the given image.
 
     Parameters

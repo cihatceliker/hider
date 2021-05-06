@@ -4,7 +4,7 @@ from .image import image_router
 from .text import text_router
 
 
-def image_in_image(*images, key: int=None):
+def image_in_image(*images, key: int=None, ratio: int=4):
     """Hides image(s) in an image or extracts hidden image(s) from an image.
     
     If multiple images passed:
@@ -18,11 +18,16 @@ def image_in_image(*images, key: int=None):
         A list of images represented with numpy arrays.
     key : int = None
         A key that will be used for RNG.
+    ratio : int = 4
+        Tells how many bits will be from the cover image. 
+        Higher ratio is higher quality cover image and lesser 
+        quality hidden images. 4 is default and it means the same quality
+        for cover and hidden images.
     """
     if len(images) == 0:
         raise Exception("Error: No image passed.")
     images = handle_images(images)
-    return image_router(*images, key=key)
+    return image_router(*images, key=key, ratio=ratio)
     
     
 def text_in_image(image: Image.Image, 
