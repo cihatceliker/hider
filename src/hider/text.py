@@ -68,9 +68,8 @@ def _encode_image_with_text(org_data: np.ndarray,
     idxs = np.random.choice(data.shape[0], MAX_TEXT_LENGTH*BYTE, replace=False)
     # converting the text to 1's and 0's for storing
     hidden = _text_to_binary(text)
-    # out of all the indexes, it only changes the ones that dont
-    # match already, by subtracting 1 (changes the leftmost bit)
-    data[idxs[hidden != data[idxs] % 2]] -= 1
+    # putting the data to the last bit
+    data[idxs] = (data[idxs] >> 1 << 1) + hidden
 
     # if someone else has the original image, part of the text could be
     # uncovered, so now will add random noise(salt?) to some other indexes
@@ -86,7 +85,9 @@ def _encode_image_with_text(org_data: np.ndarray,
     noise_idxs = np.setdiff1d(noise_idxs, idxs)
     # adding the noise if any space available
     if len(noise_idxs) > 0:
-        data[noise_idxs] -= 1
+        n = len(noise_idxs)
+        data[noise_idxs[:n]] = (data[noise_idxs[:n]] >> 1 << 1) + 1
+        data[noise_idxs[n:]] = data[noise_idxs[n:]] >> 1 << 1
     # return the reshaped flattened data with the original shape
     return Image.fromarray(data.reshape(org_data.shape))
 
